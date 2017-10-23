@@ -14,6 +14,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 
@@ -42,13 +43,13 @@ public class Market extends CordovaPlugin
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
         try {
             if (action.equals("open")) {
-                if (args.length() == 1) {
+                if (args.length() == 1 || args.length() == 2) {
                     String appId = args.getString(0);
                     this.openGooglePlay(appId);
                     callbackContext.success();
                     return true;
                 }
-            }else if (action.equals("search")) {
+            } else if (action.equals("search")) {
                 if (args.length() == 1) {
                     String key = args.getString(0);
                     this.searchGooglePlay(key);
@@ -80,47 +81,50 @@ public class Market extends CordovaPlugin
      */
 
     public  void openGooglePlay(String appId) {
-
-        Intent rateIntent = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("market://details?id=" + appId));
-        boolean marketFound = false;
         Context context = this.cordova.getActivity().getApplicationContext();
+        PackageManager manager = context.getPackageManager();
 
-        // find all applications able to handle our rateIntent
-        final List<ResolveInfo> otherApps = context.getPackageManager()
-                .queryIntentActivities(rateIntent, 0);
-        for (ResolveInfo otherApp: otherApps) {
-            // look for Google Play application
-            if (otherApp.activityInfo.applicationInfo.packageName
-                    .equals("com.android.vending")) {
+        Intent directIntent = manager.getLaunchIntentForPackage(appId);
 
-                ActivityInfo otherAppActivity = otherApp.activityInfo;
-                ComponentName componentName = new ComponentName(
-                        otherAppActivity.applicationInfo.packageName,
-                        otherAppActivity.name
-                );
-                // make sure it does NOT open in the stack of your activity
-                rateIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                // task reparenting if needed
-                rateIntent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                // if the Google Play was already open in a search result
-                //  this make sure it still go to the app page you requested
-                rateIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                // this make sure only the Google Play app is allowed to
-                // intercept the intent
-                rateIntent.setComponent(componentName);
-                context.startActivity(rateIntent);
-                marketFound = true;
-                break;
+        // app with url scheme is registered
+        if (directIntent != null) {
+          context.startActivity(directIntent);
+        } else {
+          Intent rateIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appId));
+          boolean marketFound = false;
 
-            }
-        }
+          // find all applications able to handle our rateIntent
+          final List<ResolveInfo> otherApps = manager.queryIntentActivities(rateIntent, 0);
+          for (ResolveInfo otherApp: otherApps) {
+              // look for Google Play application
+              if (otherApp.activityInfo.applicationInfo.packageName.equals("com.android.vending")) {
 
-        // if GP not present on device, open web browser
-        if (!marketFound) {
-            Intent webIntent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id="+appId));
-            context.startActivity(webIntent);
+                  ActivityInfo otherAppActivity = otherApp.activityInfo;
+                  ComponentName componentName = new ComponentName(
+                          otherAppActivity.applicationInfo.packageName,
+                          otherAppActivity.name
+                  );
+                  // make sure it does NOT open in the stack of your activity
+                  rateIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  // task reparenting if needed
+                  rateIntent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                  // if the Google Play was already open in a search result
+                  //  this make sure it still go to the app page you requested
+                  rateIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                  // this make sure only the Google Play app is allowed to
+                  // intercept the intent
+                  rateIntent.setComponent(componentName);
+                  context.startActivity(rateIntent);
+                  marketFound = true;
+                  break;
+              }
+          }
+
+          // if GP not present on device, open web browser
+          if (!marketFound) {
+              Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appId));
+              context.startActivity(webIntent);
+          }
         }
     }
 

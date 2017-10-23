@@ -7,9 +7,9 @@ var exec = require('cordova/exec');
 
 function Market() { }
 
-Market.prototype.open = function(appId, callbackContext) {
+Market.prototype.open = function(appId, scheme, callbackContext) {
     callbackContext = callbackContext || { };
-    exec(callbackContext.success || null, callbackContext.error || null, 'Market', 'open', [appId]);
+    exec(callbackContext.success || null, callbackContext.error || null, 'Market', 'open', [appId, scheme]);
 };
 
 Market.prototype.search = function(key, callbackContext) {
