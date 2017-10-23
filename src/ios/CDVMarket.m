@@ -23,7 +23,7 @@
         if (appId) {
           NSString *url = [NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/%@", appId];
             if (scheme) {
-              NSURL *urlFromScheme = [NSURL URLWithString:stringURL];
+              NSURL *urlFromScheme = [NSURL URLWithString:scheme];
               if ([[UIApplication sharedApplication]  canOpenURL: urlFromScheme]) {
                 [[UIApplication sharedApplication] openURL:urlFromScheme options:@{} completionHandler:nil];
               } else {
