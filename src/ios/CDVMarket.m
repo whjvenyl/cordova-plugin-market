@@ -17,17 +17,26 @@
     [self.commandDelegate runInBackground:^{
         NSArray *args = command.arguments;
         NSString *appId = [args objectAtIndex:0];
-        
+        NSString *scheme = [args objectAtIndex:1];
+
         CDVPluginResult *pluginResult;
         if (appId) {
-            NSString *url = [NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/%@", appId];
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
-            
+          NSString *url = [NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/%@", appId];
+            if (scheme) {
+              NSURL *urlFromScheme = [NSURL URLWithString:stringURL];
+              if ([[UIApplication sharedApplication]  canOpenURL: urlFromScheme]) {
+                [[UIApplication sharedApplication] openURL:urlFromScheme options:@{} completionHandler:nil];
+              } else {
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+              }
+            } else {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+            }
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         } else {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Invalid application id: null was found"];
         }
-        
+
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
 }
