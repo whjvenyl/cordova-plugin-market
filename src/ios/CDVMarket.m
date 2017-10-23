@@ -29,7 +29,6 @@
             NSLog(@"%@", scheme);
 
             if (![self stringIsEmpty:scheme]) {
-                NSLog(@"In condition");
                 NSURL *urlFromScheme = [NSURL URLWithString:scheme];
                 if ([[UIApplication sharedApplication] canOpenURL: urlFromScheme]) {
                     NSLog(@"Open from scheme");
