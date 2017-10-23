@@ -10,5 +10,6 @@
 @interface CDVMarket : CDVPlugin
 
 - (void)open:(CDVInvokedUrlCommand *)command;
+- (BOOL)stringIsEmpty:(NSString *) aString;
 
 @end

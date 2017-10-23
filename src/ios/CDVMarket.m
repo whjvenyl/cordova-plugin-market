@@ -17,20 +17,30 @@
     [self.commandDelegate runInBackground:^{
         NSArray *args = command.arguments;
         NSString *appId = [args objectAtIndex:0];
-        NSString *scheme = [args objectAtIndex:1];
+
+        NSLog(@"%@", args);
 
         CDVPluginResult *pluginResult;
-        if (appId) {
-          NSString *url = [NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/%@", appId];
-            if (scheme) {
-              NSURL *urlFromScheme = [NSURL URLWithString:scheme];
-              if ([[UIApplication sharedApplication]  canOpenURL: urlFromScheme]) {
-                [[UIApplication sharedApplication] openURL:urlFromScheme options:@{} completionHandler:nil];
-              } else {
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
-              }
+        if (![self stringIsEmpty:appId]) {
+            NSString *url = [NSString stringWithFormat:@"itms-apps://itunes.apple.com/app/%@", appId];
+            NSLog(@"%@", url);
+
+            NSString *scheme = [args objectAtIndex:1];
+            NSLog(@"%@", scheme);
+
+            if (![self stringIsEmpty:scheme]) {
+                NSLog(@"In condition");
+                NSURL *urlFromScheme = [NSURL URLWithString:scheme];
+                if ([[UIApplication sharedApplication] canOpenURL: urlFromScheme]) {
+                    NSLog(@"Open from scheme");
+                    [[UIApplication sharedApplication] openURL:urlFromScheme options:@{} completionHandler:nil];
+                } else {
+                    NSLog(@"Open with url 1");
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+                }
             } else {
-              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+                NSLog(@"Open with url 2");
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
             }
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         } else {
@@ -39,6 +49,26 @@
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
+}
+
+- (BOOL) stringIsEmpty:(NSString *) aString {
+
+    if ((NSNull *) aString == [NSNull null]) {
+        return YES;
+    }
+
+    if (aString == nil) {
+        return YES;
+    } else if ([aString length] == 0) {
+        return YES;
+    } else {
+        aString = [aString stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        if ([aString length] == 0) {
+            return YES;
+        }
+    }
+
+    return NO;
 }
 
 @end
